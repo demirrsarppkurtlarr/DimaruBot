@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     # Note: add `&& npm run db:deploy` after `npm run build` once Prisma migrations are committed
-    buildCommand: npm install && npm run build
+    buildCommand: NODE_ENV=development npm install && npm run build
     startCommand: npm run start --workspace=@dmb/api
     envVars:
       - key: NODE_ENV
@@ -37,7 +37,7 @@ services:
     name: dimaru-dashboard
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: NODE_ENV=development npm install && npm run build
     startCommand: npm run start --workspace=@dmb/dashboard
     envVars:
       - key: NODE_ENV
@@ -51,7 +51,7 @@ services:
     name: dimaru-bot
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: NODE_ENV=development npm install && npm run build
     startCommand: npm run start --workspace=@dmb/bot
     envVars:
       - key: NODE_ENV
