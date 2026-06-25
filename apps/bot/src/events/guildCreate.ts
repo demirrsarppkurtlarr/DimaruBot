@@ -3,9 +3,9 @@ import { DmbEvent } from './types';
 import { prisma } from '@dmb/prisma';
 import { logger } from '@dmb/logger';
 
-export const guildCreateEvent: DmbEvent<Events.GuildCreate> = {
+export const guildCreateEvent: DmbEvent = {
   name: Events.GuildCreate,
-  execute: async (client, guild: Guild) => {
+  execute: async (_client, guild: Guild) => {
     logger.info({ guildId: guild.id, name: guild.name }, 'Joined guild');
 
     await prisma.guild.upsert({

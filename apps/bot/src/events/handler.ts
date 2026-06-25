@@ -9,7 +9,7 @@ export class EventHandler {
     for (const event of events) {
       const wrapped = async (...args: unknown[]) => {
         try {
-          await event.execute(this.client, ...(args as never[]));
+          await event.execute(this.client, ...(args as unknown[]));
         } catch (err) {
           logger.error({ event: event.name, err }, 'Event handler error');
         }

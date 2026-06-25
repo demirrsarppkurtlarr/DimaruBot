@@ -22,7 +22,8 @@ export const leaderboardCommand: SlashCommand = {
     const rows = await getLeaderboard(interaction.guildId, Math.min(limit, 25));
 
     const lines = rows.map(
-      (row) => `${row.rank}. <@${row.memberId}> — Level ${row.level} (${row.xp} XP)`
+      (row: { rank: number; memberId: string; level: number; xp: number }) =>
+        `${row.rank}. <@${row.memberId}> — Level ${row.level} (${row.xp} XP)`
     );
 
     await interaction.reply(lines.length ? lines.join('\n') : 'No leaderboard data yet.');

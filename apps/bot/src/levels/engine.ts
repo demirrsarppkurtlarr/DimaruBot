@@ -1,4 +1,4 @@
-import { prisma } from '@dmb/prisma';
+import { prisma, Level } from '@dmb/prisma';
 import { GuildMember } from 'discord.js';
 
 const XP_COOLDOWN_MS = 60_000;
@@ -86,7 +86,7 @@ export async function getLeaderboard(_guildId: string, limit = 10) {
     take: limit,
   });
 
-  return rows.map((row, index) => ({
+  return rows.map((row: Level, index: number) => ({
     rank: index + 1,
     memberId: row.memberId.toString(),
     level: row.level,

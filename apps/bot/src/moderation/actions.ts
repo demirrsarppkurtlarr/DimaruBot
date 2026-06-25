@@ -17,7 +17,7 @@ export interface ModerationResult {
 }
 
 async function logAction(
-  client: DmbClient,
+  _client: DmbClient,
   guild: Guild,
   data: {
     action: string;

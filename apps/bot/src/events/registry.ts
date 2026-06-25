@@ -1,10 +1,10 @@
-import { DmbEvent, DmbEventName } from './types';
+import { DmbEvent } from './types';
 
 export class EventRegistry {
   private events: DmbEvent[] = [];
 
-  register<T extends DmbEventName>(event: DmbEvent<T>): void {
-    this.events.push(event as DmbEvent);
+  register(event: DmbEvent): void {
+    this.events.push(event);
   }
 
   getAll(): DmbEvent[] {

@@ -5,6 +5,7 @@ import {
   StringSelectMenuInteraction,
   ModalSubmitInteraction,
   SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
   ContextMenuCommandBuilder,
 } from 'discord.js';
 import { DmbClient } from '../core/client';
@@ -24,7 +25,7 @@ export interface BaseCommand {
 
 export interface SlashCommand extends BaseCommand {
   type: 'slash';
-  builder: SlashCommandBuilder;
+  builder: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
   execute: (client: DmbClient, interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 

@@ -2,7 +2,7 @@ import { Message } from 'discord.js';
 import { DmbEvent } from './types';
 import { addMessageXp, applyLevelRewards } from '../levels/engine';
 
-export const messageCreateEvent: DmbEvent<'messageCreate'> = {
+export const messageCreateEvent: DmbEvent = {
   name: 'messageCreate',
   once: false,
   execute: async (_client, message: Message) => {

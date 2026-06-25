@@ -42,7 +42,7 @@ export const moderationModule: IModule = {
     },
   ],
   async onLoad(client: DmbClient) {
-    client.on('guildMemberAdd', async (member: GuildMember) => {
+    client.on('guildMemberAdd', async (_member: GuildMember) => {
       // TODO: re-apply active punishments for returning members
     });
   },

@@ -39,10 +39,7 @@ export interface SettingsSchema {
   [key: string]: unknown;
 }
 
-export interface DmbClient {
-  // Placeholder for discord.js Client + custom extensions
-  id: string;
-}
+export type DmbClient = any;
 
 export interface TransactionInput {
   guildId: string;
