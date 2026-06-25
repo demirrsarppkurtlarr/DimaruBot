@@ -1,0 +1,84 @@
+services:
+  - type: web
+    name: dimaru-api
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run db:deploy && npm run build
+    startCommand: npm run start --workspace=@dmb/api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dimaru-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: dimaru-redis
+          property: connectionString
+      - key: DASHBOARD_URL
+        value: https://dimaru-dashboard.onrender.com
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: GOD_MODE_USER_IDS
+        sync: false
+
+  - type: web
+    name: dimaru-dashboard
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start --workspace=@dmb/dashboard
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DASHBOARD_PORT
+        value: 10000
+      - key: NEXT_PUBLIC_API_URL
+        value: https://dimaru-api.onrender.com/api
+      - key: DISCORD_CLIENT_ID
+        sync: false
+
+  - type: worker
+    name: dimaru-bot
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start --workspace=@dmb/bot
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dimaru-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: dimaru-redis
+          property: connectionString
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: GOD_MODE_USER_IDS
+        sync: false
+
+databases:
+  - name: dimaru-postgres
+    databaseName: dimarubot
+    user: dimaru
+    plan: starter
+
+redis:
+  - name: dimaru-redis
+    plan: starter

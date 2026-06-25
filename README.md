@@ -102,8 +102,30 @@ docker compose up --build
 | `npm run typecheck` | Run type checks only |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:migrate` | Run Prisma migrations |
+| `npm run db:deploy` | Deploy Prisma migrations (production) |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run format` | Format code with Prettier |
+
+## Deploy on Render
+
+The repository includes a `render.yaml` blueprint for Render.
+
+1. Push this repo to GitHub.
+2. In Render dashboard, click **New + → Blueprint** and select the repo.
+3. Render creates:
+   - `dimaru-postgres` PostgreSQL database
+   - `dimaru-redis` Redis instance
+   - `dimaru-api` web service
+   - `dimaru-dashboard` web service
+   - `dimaru-bot` worker service
+4. Fill the environment variables marked `sync: false` in Render dashboard:
+   - `DISCORD_TOKEN` (bot token)
+   - `DISCORD_CLIENT_ID`
+   - `DISCORD_CLIENT_SECRET`
+   - `JWT_ACCESS_SECRET` (random 32+ chars)
+   - `JWT_REFRESH_SECRET` (different random 32+ chars)
+   - `GOD_MODE_USER_IDS` (Discord user ID)
+5. Render will run `npm run db:deploy` during build, then start each service.
 
 ## Ports
 
