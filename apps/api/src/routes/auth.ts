@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import axios from 'axios';
 import { env } from '@dmb/config';
 import { logger } from '@dmb/logger';
-import { signTokens } from '../plugins/auth';
+import { signTokens, TokenPayload } from '../plugins/auth';
 
 interface DiscordTokenResponse {
   access_token: string;
@@ -20,7 +20,7 @@ interface DiscordUser {
 }
 
 export async function authRoutes(app: FastifyInstance) {
-  app.get('/discord', async (req, reply) => {
+  app.get('/discord', async (_req, reply) => {
     const state = generateState();
     const url = new URL('https://discord.com/oauth2/authorize');
     url.searchParams.set('client_id', env.DISCORD_CLIENT_ID);
@@ -92,7 +92,7 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     try {
-      const payload = await app.jwt.verify(refreshToken);
+      const payload = await app.jwt.verify(refreshToken) as TokenPayload;
       const { access, refresh } = signTokens({
         sub: payload.sub,
         username: payload.username,

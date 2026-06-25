@@ -1,16 +1,16 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '@dmb/prisma';
-import { redis } from 'ioredis';
+import { Redis } from 'ioredis';
 import { env } from '@dmb/config';
 
-const redisClient = new redis(env.REDIS_URL);
+const redisClient = new Redis(env.REDIS_URL);
 
 export async function healthRoutes(app: FastifyInstance) {
   app.get('/', async () => {
     return { status: 'ok', service: 'dmb-api', timestamp: new Date().toISOString() };
   });
 
-  app.get('/ready', async (req, reply) => {
+  app.get('/ready', async (_req, reply) => {
     const checks: Record<string, boolean> = {};
 
     try {
@@ -32,7 +32,7 @@ export async function healthRoutes(app: FastifyInstance) {
     return { ready: ok, checks };
   });
 
-  app.get('/metrics', async (req, reply) => {
+  app.get('/metrics', async (_req, reply) => {
     const mem = process.memoryUsage();
     return reply.send({
       uptime: process.uptime(),

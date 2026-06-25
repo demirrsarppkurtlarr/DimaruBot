@@ -1,4 +1,4 @@
-import { prisma } from '@dmb/prisma';
+import { prisma, Level } from '@dmb/prisma';
 
 function generateMemberId(guildId: string, userId: string): bigint {
   return BigInt(guildId + userId);
@@ -24,7 +24,7 @@ export async function getLeaderboard(limit = 10) {
     take: limit,
   });
 
-  return rows.map((row, index) => ({
+  return rows.map((row: Level, index: number) => ({
     rank: index + 1,
     memberId: row.memberId.toString(),
     level: row.level,

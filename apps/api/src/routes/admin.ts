@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '@dmb/prisma';
+import { prisma, DimaCoinAccount } from '@dmb/prisma';
 import { requireAuth } from '../middleware/auth';
 import { requireGodMode } from '../middleware/admin';
 import {
@@ -33,7 +33,7 @@ export async function adminRoutes(app: FastifyInstance) {
     ]);
 
     return {
-      accounts: accounts.map((a) => ({
+      accounts: accounts.map((a: DimaCoinAccount) => ({
         ...a,
         wallet: a.wallet.toString(),
         bank: a.bank.toString(),

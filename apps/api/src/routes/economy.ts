@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '@dmb/prisma';
+import { prisma, CoinTransaction } from '@dmb/prisma';
 import { requireAuth } from '../middleware/auth';
 import { executeTransfer, TransferError } from '../services/economy';
 import { claimDailyReward, RewardError } from '../services/rewards';
@@ -55,7 +55,7 @@ export async function economyRoutes(app: FastifyInstance) {
     ]);
 
     return {
-      transactions: transactions.map((t) => ({
+      transactions: transactions.map((t: CoinTransaction) => ({
         ...t,
         amount: t.amount.toString(),
         fee: t.fee.toString(),
