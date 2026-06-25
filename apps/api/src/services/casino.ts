@@ -1,4 +1,4 @@
-import { prisma } from '@dmb/prisma';
+import { prisma, Prisma } from '@dmb/prisma';
 import { createHash, randomBytes, randomUUID } from 'crypto';
 
 export class GameError extends Error {
@@ -128,7 +128,7 @@ export async function placeBet(
         senderBalanceAfter: account.wallet - amountBig + (won ? netPayout : 0n),
         recipientBalanceAfter: account.wallet - amountBig + (won ? netPayout : 0n),
         securityHash,
-        metadata,
+        metadata: metadata as Prisma.InputJsonValue,
       },
     }),
     prisma.jackpotPool.upsert({

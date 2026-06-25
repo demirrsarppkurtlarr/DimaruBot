@@ -241,6 +241,7 @@ model JackpotPool {
   lastWonAt         DateTime? @map("last_won_at") @db.Timestamptz()
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
+  @@unique([guildId, name])
   @@map("jackpot_pools")
 }
 
