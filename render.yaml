@@ -49,12 +49,13 @@ services:
       - key: DISCORD_CLIENT_ID
         sync: false
 
-  - type: worker
+  - type: web
     name: dimaru-bot
     env: node
     plan: free
     buildCommand: NODE_ENV=development npm install && npm run build
     startCommand: npm run start --workspace=@dmb/bot
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
