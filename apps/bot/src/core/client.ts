@@ -18,5 +18,8 @@ export function createClient(): Client {
 export type DmbClient = ReturnType<typeof createClient>;
 
 export async function loginClient(client: DmbClient): Promise<void> {
+  if (!env.DISCORD_TOKEN) {
+    throw new Error('DISCORD_TOKEN is required to start the bot');
+  }
   await client.login(env.DISCORD_TOKEN);
 }

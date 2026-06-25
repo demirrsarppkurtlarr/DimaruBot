@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DISCORD_TOKEN: z.string().min(1),
+  DISCORD_TOKEN: z.string().min(1).optional(),
   DISCORD_CLIENT_ID: z.string().min(1),
   DISCORD_CLIENT_SECRET: z.string().min(1),
   DATABASE_URL: z.string().min(1),
