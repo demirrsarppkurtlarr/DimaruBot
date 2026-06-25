@@ -2,7 +2,7 @@ services:
   - type: web
     name: dimaru-api
     env: node
-    plan: starter
+    plan: free
     # Note: add `&& npm run db:deploy` after `npm run build` once Prisma migrations are committed
     buildCommand: npm install && npm run build
     startCommand: npm run start --workspace=@dmb/api
@@ -36,7 +36,7 @@ services:
   - type: web
     name: dimaru-dashboard
     env: node
-    plan: starter
+    plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start --workspace=@dmb/dashboard
     envVars:
@@ -50,7 +50,7 @@ services:
   - type: worker
     name: dimaru-bot
     env: node
-    plan: starter
+    plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start --workspace=@dmb/bot
     envVars:
@@ -74,7 +74,7 @@ services:
 
   - type: keyvalue
     name: dimaru-redis
-    plan: starter
+    plan: free
     maxmemoryPolicy: noeviction
     ipAllowList:
       - source: 0.0.0.0/0
@@ -84,4 +84,4 @@ databases:
   - name: dimaru-postgres
     databaseName: dimarubot
     user: dimaru
-    plan: starter
+    plan: free
