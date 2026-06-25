@@ -1,0 +1,605 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            BigInt   @id
+  username      String   @db.VarChar(32)
+  avatar        String?  @db.VarChar(40)
+  locale        String   @default("en") @db.VarChar(10)
+  isPremium     Boolean  @default(false) @map("is_premium")
+  premiumTier   String   @default("free") @map("premium_tier") @db.VarChar(20)
+  premiumUntil  DateTime? @map("premium_until") @db.Timestamptz()
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  guilds        Guild[]
+  members       Member[]
+  sentTransactions     CoinTransaction[] @relation("SentTransactions")
+  receivedTransactions CoinTransaction[] @relation("ReceivedTransactions")
+
+  @@map("users")
+}
+
+model Guild {
+  id              BigInt   @id
+  name            String   @db.VarChar(100)
+  icon            String?  @db.VarChar(40)
+  ownerId         BigInt?  @map("owner_id")
+  prefix          String   @default("/") @db.VarChar(10)
+  locale          String   @default("en") @db.VarChar(10)
+  timezone        String   @default("UTC") @db.VarChar(50)
+  isPremium       Boolean  @default(false) @map("is_premium")
+  premiumTier     String   @default("free") @map("premium_tier") @db.VarChar(20)
+  premiumUntil    DateTime? @map("premium_until") @db.Timestamptz()
+  settings        Json?    @default("{}")
+  enabledModules  String[] @default([]) @map("enabled_modules")
+  shardId         Int?     @map("shard_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  leftAt          DateTime? @map("left_at") @db.Timestamptz()
+
+  owner           User?    @relation(fields: [ownerId], references: [id])
+  members         Member[]
+  coinAccounts    DimaCoinAccount[]
+  transactions    CoinTransaction[]
+  gameSessions    GameSession[]
+
+  @@map("guilds")
+}
+
+model Member {
+  id              BigInt   @id @default(autoincrement())
+  userId          BigInt   @map("user_id")
+  guildId         BigInt   @map("guild_id")
+  nickname        String?  @db.VarChar(32)
+  roles           BigInt[] @default([])
+  joinedAt        DateTime? @map("joined_at") @db.Timestamptz()
+  xp              Int      @default(0)
+  level           Int      @default(0)
+  wallet          BigInt   @default(0)
+  bank            BigInt   @default(0)
+  messageCount    Int      @default(0) @map("message_count")
+  voiceMinutes    Int      @default(0) @map("voice_minutes")
+  lastMessageAt   DateTime? @map("last_message_at") @db.Timestamptz()
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user            User     @relation(fields: [userId], references: [id])
+  guild           Guild    @relation(fields: [guildId], references: [id])
+
+  @@unique([userId, guildId])
+  @@map("members")
+}
+
+model DimaCoinAccount {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  userId          BigInt   @map("user_id")
+  wallet          BigInt   @default(0)
+  bank            BigInt   @default(0)
+  totalEarned     BigInt   @default(0) @map("total_earned")
+  totalSpent      BigInt   @default(0) @map("total_spent")
+  trustScore      Int      @default(0) @map("trust_score")
+  levelMultiplier Decimal  @default(1.00) @map("level_multiplier") @db.Decimal(3, 2)
+  isFrozen        Boolean  @default(false) @map("is_frozen")
+  frozenReason    String?  @map("frozen_reason")
+  frozenAt        DateTime? @map("frozen_at") @db.Timestamptz()
+  frozenBy        BigInt?  @map("frozen_by")
+  lastDailyAt     DateTime? @map("last_daily_at") @db.Timestamptz()
+  dailyStreak     Int      @default(0) @map("daily_streak")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  guild           Guild    @relation(fields: [guildId], references: [id])
+
+  @@unique([guildId, userId])
+  @@map("dimacoin_accounts")
+}
+
+model CoinTransaction {
+  id                    BigInt   @id @default(autoincrement())
+  transactionId         String   @unique @default(uuid()) @map("transaction_id") @db.Uuid
+  guildId               BigInt   @map("guild_id")
+  senderId              BigInt?  @map("sender_id")
+  recipientId           BigInt?  @map("recipient_id")
+  type                  String   @db.VarChar(40)
+  amount                BigInt
+  fee                   BigInt   @default(0)
+  senderBalanceAfter    BigInt?  @map("sender_balance_after")
+  recipientBalanceAfter BigInt?  @map("recipient_balance_after")
+  securityHash          String   @map("security_hash") @db.VarChar(64)
+  metadata              Json?    @default("{}")
+  status                String   @default("completed") @db.VarChar(20)
+  rolledBackAt          DateTime? @map("rolled_back_at") @db.Timestamptz()
+  rollbackReason        String?  @map("rollback_reason")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  guild                 Guild    @relation(fields: [guildId], references: [id])
+  sender                User?    @relation("SentTransactions", fields: [senderId], references: [id])
+  recipient             User?    @relation("ReceivedTransactions", fields: [recipientId], references: [id])
+
+  @@map("coin_transactions")
+}
+
+model GameSession {
+  id          BigInt   @id @default(autoincrement())
+  sessionId   String   @unique @default(uuid()) @map("session_id") @db.Uuid
+  guildId     BigInt   @map("guild_id")
+  userId      BigInt   @map("user_id")
+  gameType    String   @map("game_type") @db.VarChar(40)
+  mode        String   @db.VarChar(20)
+  opponentId  BigInt?  @map("opponent_id")
+  betAmount   BigInt   @map("bet_amount")
+  outcome     String   @db.VarChar(20)
+  payout      BigInt   @default(0)
+  houseEdge   Decimal  @map("house_edge") @db.Decimal(5, 2)
+  rngSeedId   BigInt   @map("rng_seed_id")
+  resultData  Json     @map("result_data")
+  status      String   @default("active") @db.VarChar(20)
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz()
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  guild       Guild    @relation(fields: [guildId], references: [id])
+
+  @@map("game_sessions")
+}
+
+model Log {
+  id          BigInt   @id @default(autoincrement())
+  guildId     BigInt   @map("guild_id")
+  module      String   @db.VarChar(40)
+  eventType   String   @map("event_type") @db.VarChar(60)
+  userId      BigInt?  @map("user_id")
+  targetId    BigInt?  @map("target_id")
+  channelId   BigInt?  @map("channel_id")
+  messageId   BigInt?  @map("message_id")
+  payload     Json
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("logs")
+}
+
+model GamblingHistory {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  userId          BigInt   @map("user_id")
+  gameType        String   @map("game_type") @db.VarChar(40)
+  totalBets       BigInt   @default(0) @map("total_bets")
+  totalWins       BigInt   @default(0) @map("total_wins")
+  totalLosses     BigInt   @default(0) @map("total_losses")
+  netProfit       BigInt   @default(0) @map("net_profit")
+  dailyLoss       BigInt   @default(0) @map("daily_loss")
+  dailyLossResetAt DateTime? @map("daily_loss_reset_at") @db.Timestamptz()
+  lastGameAt      DateTime? @map("last_game_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("gambling_history")
+}
+
+model EconomyAuditLog {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt?  @map("guild_id")
+  userId        BigInt?  @map("user_id")
+  action        String   @db.VarChar(60)
+  entity        String   @db.VarChar(40)
+  entityId      BigInt?  @map("entity_id")
+  changes       Json
+  ipAddress     String?  @map("ip_address") @db.Inet
+  userAgent     String?  @map("user_agent")
+  adminId       BigInt?  @map("admin_id")
+  isImmutable   Boolean  @default(true) @map("is_immutable")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("economy_audit_logs")
+}
+
+model AdminAction {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt?  @map("guild_id")
+  adminId       BigInt   @map("admin_id")
+  targetUserId  BigInt?  @map("target_user_id")
+  actionType    String   @map("action_type") @db.VarChar(40)
+  amount        BigInt?
+  reason        String
+  metadata      Json?    @default("{}")
+  ipAddress     String?  @map("ip_address") @db.Inet
+  userAgent     String?  @map("user_agent")
+  isImmutable   Boolean  @default(true) @map("is_immutable")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("admin_actions")
+}
+
+model RNGSeed {
+  id            BigInt   @id @default(autoincrement())
+  seed          String   @db.VarChar(128)
+  seedHash      String   @map("seed_hash") @db.VarChar(64)
+  nonce         BigInt   @default(0)
+  algorithm     String   @default("hmac-sha256") @db.VarChar(20)
+  generatedAt   DateTime @default(now()) @map("generated_at") @db.Timestamptz()
+  rotatedAt     DateTime? @map("rotated_at") @db.Timestamptz()
+  isActive      Boolean  @default(true) @map("is_active")
+
+  @@map("rng_seeds")
+}
+
+model JackpotPool {
+  id                BigInt   @id @default(autoincrement())
+  guildId           BigInt   @map("guild_id")
+  name              String   @db.VarChar(100)
+  poolType          String   @map("pool_type") @db.VarChar(40)
+  balance           BigInt   @default(0)
+  contributionRate  Decimal  @default(0.01) @map("contribution_rate") @db.Decimal(5, 2)
+  lastWinnerId      BigInt?  @map("last_winner_id")
+  lastWonAt         DateTime? @map("last_won_at") @db.Timestamptz()
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("jackpot_pools")
+}
+
+model FraudScore {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  userId          BigInt   @map("user_id")
+  score           Int      @default(0)
+  flags           String[] @default([])
+  lastEvaluatedAt DateTime? @map("last_evaluated_at") @db.Timestamptz()
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([guildId, userId])
+  @@map("fraud_scores")
+}
+
+model EconomyAdvancedSettings {
+  guildId                 BigInt   @id @map("guild_id")
+  currencyName            String   @default("DimaCoin") @map("currency_name") @db.VarChar(32)
+  currencySymbol          String   @default("🪙") @map("currency_symbol") @db.VarChar(8)
+  dailyBase               Int      @default(100) @map("daily_base")
+  dailyStreakBonus        Int      @default(10) @map("daily_streak_bonus")
+  transferFeeMin          Decimal  @default(0.00) @map("transfer_fee_min") @db.Decimal(5, 2)
+  transferFeeMax          Decimal  @default(0.05) @map("transfer_fee_max") @db.Decimal(5, 2)
+  transferFeeTrusted      Decimal  @default(0.00) @map("transfer_fee_trusted") @db.Decimal(5, 2)
+  transferLimitNew        BigInt   @default(1000) @map("transfer_limit_new")
+  transferLimitStandard   BigInt   @default(10000) @map("transfer_limit_standard")
+  transferLimitTrusted    BigInt   @default(100000) @map("transfer_limit_trusted")
+  transferLimitPremium    BigInt   @default(1000000) @map("transfer_limit_premium")
+  workCooldownMinutes     Int      @default(240) @map("work_cooldown_minutes")
+  gameLossLimitDaily      BigInt   @default(5000) @map("game_loss_limit_daily")
+  gameLossLimitWeekly     BigInt   @default(25000) @map("game_loss_limit_weekly")
+  houseEdgeDefault        Decimal  @default(0.02) @map("house_edge_default") @db.Decimal(5, 2)
+  inflationTargetMonthly  Decimal  @default(0.05) @map("inflation_target_monthly") @db.Decimal(5, 2)
+  aiBalancerEnabled       Boolean  @default(true) @map("ai_balancer_enabled")
+  casinoEnabled           Boolean  @default(true) @map("casino_enabled")
+  transfersEnabled        Boolean  @default(true) @map("transfers_enabled")
+  updatedAt               DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("economy_advanced_settings")
+}
+
+model TicketCategory {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  name            String   @db.VarChar(100)
+  description     String?
+  parentChannelId BigInt?  @map("parent_channel_id")
+  supportRoleIds  BigInt[] @default([]) @map("support_role_ids")
+  maxOpen         Int      @default(3) @map("max_open")
+  autoCloseHours  Int      @default(48) @map("auto_close_hours")
+  formEnabled     Boolean  @default(false) @map("form_enabled")
+  formFields      Json?    @default("[]") @map("form_fields")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("ticket_categories")
+}
+
+model Ticket {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  channelId       BigInt?  @unique @map("channel_id")
+  categoryId      BigInt   @map("category_id")
+  userId          BigInt   @map("user_id")
+  status          String   @default("open") @db.VarChar(20)
+  priority        String   @default("normal") @db.VarChar(10)
+  assignedTo      BigInt?  @map("assigned_to")
+  score           Int?
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  closedAt        DateTime? @map("closed_at") @db.Timestamptz()
+  closedBy        BigInt?  @map("closed_by")
+  transcriptUrl   String?  @map("transcript_url") @db.VarChar(255)
+
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id          BigInt   @id @default(autoincrement())
+  ticketId    BigInt   @map("ticket_id")
+  userId      BigInt?  @map("user_id")
+  content     String?
+  attachments Json?    @default("[]")
+  isInternal  Boolean  @default(false) @map("is_internal")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("ticket_messages")
+}
+
+model Punishment {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt   @map("guild_id")
+  userId        BigInt   @map("user_id")
+  moderatorId   BigInt   @map("moderator_id")
+  type          String   @db.VarChar(20)
+  reason        String?
+  duration      Int?
+  expiresAt     DateTime? @map("expires_at") @db.Timestamptz()
+  revoked       Boolean  @default(false)
+  revokedBy     BigInt?  @map("revoked_by")
+  revokedReason String?  @map("revoked_reason")
+  evidence      Json?    @default("[]")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("punishments")
+}
+
+model Warning {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt   @map("guild_id")
+  userId        BigInt   @map("user_id")
+  moderatorId   BigInt   @map("moderator_id")
+  reason        String?
+  points        Int      @default(1)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("warnings")
+}
+
+model ReactionRole {
+  id          BigInt   @id @default(autoincrement())
+  guildId     BigInt   @map("guild_id")
+  messageId   BigInt   @map("message_id")
+  channelId   BigInt   @map("channel_id")
+  emoji       String   @db.VarChar(100)
+  roleId      BigInt   @map("role_id")
+  mode        String   @default("toggle") @db.VarChar(20)
+  max         Int      @default(0)
+
+  @@unique([messageId, emoji])
+  @@map("reaction_roles")
+}
+
+model AutoRole {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt   @map("guild_id")
+  roleId        BigInt   @map("role_id")
+  delayMinutes  Int      @default(0) @map("delay_minutes")
+  botOnly       Boolean  @default(false) @map("bot_only")
+  humanOnly     Boolean  @default(false) @map("human_only")
+
+  @@unique([guildId, roleId])
+  @@map("auto_roles")
+}
+
+model WelcomeSettings {
+  guildId             BigInt   @id @map("guild_id")
+  enabled             Boolean  @default(false)
+  channelId           BigInt?  @map("channel_id")
+  dmEnabled           Boolean  @default(false) @map("dm_enabled")
+  messageContent      String?  @map("message_content")
+  embeds              Json?    @default("[]")
+  farewellEnabled     Boolean  @default(false) @map("farewell_enabled")
+  farewellChannelId   BigInt?  @map("farewell_channel_id")
+  farewellContent     String?  @map("farewell_content")
+  autoRoleIds         BigInt[] @default([]) @map("auto_role_ids")
+
+  @@map("welcome_settings")
+}
+
+model SecuritySettings {
+  guildId                 BigInt   @id @map("guild_id")
+  raidEnabled             Boolean  @default(false) @map("raid_enabled")
+  raidThreshold           Int      @default(10) @map("raid_threshold")
+  raidWindowSeconds       Int      @default(10) @map("raid_window_seconds")
+  raidAction              String   @default("lockdown") @map("raid_action") @db.VarChar(20)
+  spamEnabled             Boolean  @default(false) @map("spam_enabled")
+  spamSensitivity         Int      @default(3) @map("spam_sensitivity")
+  scamEnabled             Boolean  @default(true) @map("scam_enabled")
+  massMentionEnabled      Boolean  @default(false) @map("mass_mention_enabled")
+  massMentionThreshold    Int      @default(5) @map("mass_mention_threshold")
+  altAccountDays          Int      @default(7) @map("alt_account_days")
+  verificationLevel       String   @default("low") @map("verification_level") @db.VarChar(20)
+  quarantineRoleId       BigInt?  @map("quarantine_role_id")
+  muteRoleId              BigInt?  @map("mute_role_id")
+  logChannelId            BigInt?  @map("log_channel_id")
+  updatedAt               DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("security_settings")
+}
+
+model Giveaway {
+  id                BigInt   @id @default(autoincrement())
+  guildId           BigInt   @map("guild_id")
+  channelId         BigInt   @map("channel_id")
+  messageId         BigInt?  @map("message_id")
+  prize             String   @db.VarChar(255)
+  description       String?
+  winnerCount       Int      @default(1) @map("winner_count")
+  endsAt            DateTime @map("ends_at") @db.Timestamptz()
+  requiredRoleId    BigInt?  @map("required_role_id")
+  requiredInvites   Int      @default(0) @map("required_invites")
+  bonusEntries      Json?    @default("[]") @map("bonus_entries")
+  participants      BigInt[] @default([])
+  winners           BigInt[] @default([])
+  status            String   @default("active") @db.VarChar(20)
+  createdBy         BigInt   @map("created_by")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("giveaways")
+}
+
+model Application {
+  id                BigInt   @id @default(autoincrement())
+  guildId           BigInt   @map("guild_id")
+  name              String   @db.VarChar(100)
+  description       String?
+  formFields        Json     @map("form_fields")
+  reviewChannelId   BigInt?  @map("review_channel_id")
+  acceptedRoleId    BigInt?  @map("accepted_role_id")
+  status            String   @default("active") @db.VarChar(20)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("applications")
+}
+
+model ApplicationSubmission {
+  id              BigInt   @id @default(autoincrement())
+  applicationId   BigInt   @map("application_id")
+  userId          BigInt   @map("user_id")
+  answers         Json
+  status          String   @default("pending") @db.VarChar(20)
+  reviewerId      BigInt?  @map("reviewer_id")
+  reviewedAt      DateTime? @map("reviewed_at") @db.Timestamptz()
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("application_submissions")
+}
+
+model Suggestion {
+  id          BigInt   @id @default(autoincrement())
+  guildId     BigInt   @map("guild_id")
+  userId      BigInt   @map("user_id")
+  content     String
+  messageId   BigInt?  @map("message_id")
+  channelId   BigInt?  @map("channel_id")
+  status      String   @default("pending") @db.VarChar(20)
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  anonymous   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("suggestions")
+}
+
+model PremiumSubscription {
+  id            BigInt   @id @default(autoincrement())
+  userId        BigInt?  @map("user_id")
+  guildId       BigInt?  @map("guild_id")
+  tier          String   @db.VarChar(20)
+  provider      String   @db.VarChar(20)
+  providerSubscriptionId String? @map("provider_subscription_id") @db.VarChar(255)
+  startsAt      DateTime @default(now()) @map("starts_at") @db.Timestamptz()
+  endsAt        DateTime @map("ends_at") @db.Timestamptz()
+  isActive      Boolean  @default(true) @map("is_active")
+  metadata      Json?    @default("{}")
+
+  @@map("premium_subscriptions")
+}
+
+model AIConversation {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt?  @map("guild_id")
+  userId        BigInt?  @map("user_id")
+  channelId     BigInt?  @map("channel_id")
+  threadId      BigInt?  @map("thread_id")
+  model         String   @db.VarChar(50)
+  messages      Json     @default("[]")
+  tokenUsage    Int      @default(0) @map("token_usage")
+  costUsd       Decimal  @default(0) @map("cost_usd") @db.Decimal(10, 6)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("ai_conversations")
+}
+
+model AuditEvent {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt?  @map("guild_id")
+  userId        BigInt?  @map("user_id")
+  action        String   @db.VarChar(60)
+  entity        String   @db.VarChar(40)
+  entityId      BigInt?  @map("entity_id")
+  changes       Json?    @default("{}")
+  ipAddress     String?  @map("ip_address") @db.Inet
+  userAgent     String?  @map("user_agent")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("audit_events")
+}
+
+model Backup {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt   @map("guild_id")
+  name          String?  @db.VarChar(100)
+  sizeBytes     BigInt?  @map("size_bytes")
+  snapshot      Json
+  createdBy     BigInt   @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("backups")
+}
+
+model EconomySettings {
+  guildId           BigInt   @id @map("guild_id")
+  currencyName      String   @default("Coin") @map("currency_name") @db.VarChar(32)
+  currencySymbol    String   @default("🪙") @map("currency_symbol") @db.VarChar(8)
+  dailyAmount       Int      @default(100) @map("daily_amount")
+  dailyStreakBonus  Int      @default(10) @map("daily_streak_bonus")
+  settings          Json?    @default("{}")
+
+  @@map("economy_settings")
+}
+
+model EconomyItem {
+  id            BigInt   @id @default(autoincrement())
+  guildId       BigInt   @map("guild_id")
+  name          String   @db.VarChar(100)
+  description   String?
+  price         BigInt
+  stock         Int      @default(-1)
+  roleId        BigInt?  @map("role_id")
+  metadata      Json?    @default("{}")
+
+  @@unique([guildId, name])
+  @@map("economy_items")
+}
+
+model EconomyInventory {
+  id          BigInt   @id @default(autoincrement())
+  memberId    BigInt   @map("member_id")
+  itemId      BigInt   @map("item_id")
+  quantity    Int      @default(1)
+
+  @@unique([memberId, itemId])
+  @@map("economy_inventory")
+}
+
+model LevelReward {
+  id              BigInt   @id @default(autoincrement())
+  guildId         BigInt   @map("guild_id")
+  level           Int
+  roleId          BigInt   @map("role_id")
+  removePrevious  Boolean  @default(false) @map("remove_previous")
+
+  @@unique([guildId, level])
+  @@map("level_rewards")
+}
+
+model Level {
+  memberId      BigInt   @id @map("member_id")
+  xp            Int      @default(0)
+  level         Int      @default(0)
+  messages      Int      @default(0)
+  voiceXp       Int      @default(0) @map("voice_xp")
+  lastAwardedAt DateTime? @map("last_awarded_at") @db.Timestamptz()
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("levels")
+}
+
