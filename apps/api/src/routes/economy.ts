@@ -3,6 +3,7 @@ import { prisma } from '@dmb/prisma';
 import { requireAuth } from '../middleware/auth';
 import { executeTransfer, TransferError } from '../services/economy';
 import { claimDailyReward, RewardError } from '../services/rewards';
+import { placeBet, GameError } from '../services/casino';
 
 export async function economyRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth);
@@ -117,10 +118,18 @@ export async function economyRoutes(app: FastifyInstance) {
     const userId = req.user!.sub;
     const { guildId, amount, choice } = req.body as { guildId: string; amount: string; choice?: string };
 
-    // TODO: call game engine with RNG seed
-    return reply.status(501).send({
-      error: 'NotImplemented',
-      message: `Game engine for ${gameType} will be implemented in next phase.`,
-    });
+    try {
+      const result = await placeBet(guildId, userId, gameType, amount, choice);
+      return reply.send({
+        won: result.won,
+        payout: result.payout.toString(),
+        roll: result.roll,
+        metadata: result.metadata,
+        transactionId: result.transactionId,
+      });
+    } catch (err) {
+      const code = err instanceof GameError ? err.code : 'GameFailed';
+      return reply.status(400).send({ error: code, message: (err as Error).message });
+    }
   });
 }
