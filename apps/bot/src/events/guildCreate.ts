@@ -5,7 +5,8 @@ import { logger } from '@dmb/logger';
 
 export const guildCreateEvent: DmbEvent = {
   name: Events.GuildCreate,
-  execute: async (_client, guild: Guild) => {
+  execute: async (_client, ...args: unknown[]) => {
+    const guild = args[0] as Guild;
     logger.info({ guildId: guild.id, name: guild.name }, 'Joined guild');
 
     await prisma.guild.upsert({

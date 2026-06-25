@@ -5,7 +5,8 @@ import { addMessageXp, applyLevelRewards } from '../levels/engine';
 export const messageCreateEvent: DmbEvent = {
   name: 'messageCreate',
   once: false,
-  execute: async (_client, message: Message) => {
+  execute: async (_client, ...args: unknown[]) => {
+    const message = args[0] as Message;
     if (message.author.bot || !message.guild) return;
 
     const result = await addMessageXp(message.guild.id, message.author.id);
