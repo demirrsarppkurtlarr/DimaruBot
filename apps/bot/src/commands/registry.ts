@@ -5,7 +5,7 @@ import { botConfig } from '../core/config';
 
 export class CommandRegistry {
   private commands = new Collection<string, DmbCommand>();
-  private rest = new REST({ version: '10' }).setToken(botConfig.token);
+  private rest = new REST({ version: '10' }).setToken(botConfig.token ?? '');
 
   register(command: DmbCommand): void {
     this.commands.set(command.name, command);
