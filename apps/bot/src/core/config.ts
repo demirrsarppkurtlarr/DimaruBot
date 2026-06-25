@@ -5,6 +5,6 @@ export const botConfig = {
   clientId: env.DISCORD_CLIENT_ID,
   defaultPrefix: '/',
   defaultLocale: 'en',
-  ownerIds: env.GOD_MODE_USER_IDS.split(','),
+  ownerIds: env.GOD_MODE_USER_IDS?.split(',').filter(Boolean) ?? [],
   commandCooldown: 5,
 } as const;

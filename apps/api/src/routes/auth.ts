@@ -37,6 +37,10 @@ export async function authRoutes(app: FastifyInstance) {
     const { code, state } = req.query as { code?: string; state?: string };
     const savedState = req.cookies.oauth_state;
 
+    if (!env.DISCORD_CLIENT_SECRET) {
+      return reply.status(500).send({ error: 'OAuth not configured' });
+    }
+
     if (!code || !state || state !== savedState) {
       return reply.status(400).send({ error: 'InvalidOAuthState' });
     }

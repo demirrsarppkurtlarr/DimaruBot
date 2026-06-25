@@ -34,6 +34,9 @@ export async function authenticate(req: FastifyRequest, reply: FastifyReply): Pr
 }
 
 export function signTokens(payload: Omit<TokenPayload, 'iat' | 'exp'>) {
+  if (!env.JWT_ACCESS_SECRET || !env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET are required');
+  }
   const accessSigner = createSigner({ key: env.JWT_ACCESS_SECRET, expiresIn: '15m' });
   const refreshSigner = createSigner({ key: env.JWT_REFRESH_SECRET, expiresIn: '7d' });
   const access = accessSigner({ ...payload, type: 'access' });
@@ -42,6 +45,9 @@ export function signTokens(payload: Omit<TokenPayload, 'iat' | 'exp'>) {
 }
 
 export async function registerJwtPlugin(app: FastifyInstance): Promise<void> {
+  if (!env.JWT_ACCESS_SECRET) {
+    throw new Error('JWT_ACCESS_SECRET is required');
+  }
   const jwt = await import('@fastify/jwt');
   await app.register(jwt.default, {
     secret: env.JWT_ACCESS_SECRET,
