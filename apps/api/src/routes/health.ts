@@ -33,7 +33,15 @@ export async function healthRoutes(app: FastifyInstance) {
   });
 
   app.get('/metrics', async (req, reply) => {
-    // TODO: expose Prometheus metrics
-    return reply.status(501).send({ error: 'NotImplemented', message: 'Metrics endpoint coming soon.' });
+    const mem = process.memoryUsage();
+    return reply.send({
+      uptime: process.uptime(),
+      memory: {
+        rss: mem.rss,
+        heapTotal: mem.heapTotal,
+        heapUsed: mem.heapUsed,
+        external: mem.external,
+      },
+    });
   });
 }

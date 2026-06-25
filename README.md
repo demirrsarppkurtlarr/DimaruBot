@@ -127,6 +127,21 @@ The repository includes a `render.yaml` blueprint for Render.
    - `GOD_MODE_USER_IDS` (Discord user ID)
 5. Render will run `npm run db:deploy` during build, then start each service.
 
+> **Important:** Before Render can deploy, Prisma migration files must exist in the repo. Generate them once with a local PostgreSQL instance:
+>
+> ```bash
+> docker compose up -d postgres redis
+> npm install
+> npm run db:generate
+> npm run db:migrate
+> # Give the migration a name like "init" when prompted
+> git add packages/prisma/prisma/migrations
+> git commit -m "add prisma migrations"
+> git push
+> ```
+>
+> After migrations are pushed, re-enable `&& npm run db:deploy` in `render.yaml` for the API service.
+
 ## Ports
 
 | Service | Port |

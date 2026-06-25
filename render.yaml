@@ -3,7 +3,8 @@ services:
     name: dimaru-api
     env: node
     plan: starter
-    buildCommand: npm install && npm run db:deploy && npm run build
+    # Note: add `&& npm run db:deploy` after `npm run build` once Prisma migrations are committed
+    buildCommand: npm install && npm run build
     startCommand: npm run start --workspace=@dmb/api
     envVars:
       - key: NODE_ENV
@@ -41,8 +42,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DASHBOARD_PORT
-        value: 10000
       - key: NEXT_PUBLIC_API_URL
         value: https://dimaru-api.onrender.com/api
       - key: DISCORD_CLIENT_ID
