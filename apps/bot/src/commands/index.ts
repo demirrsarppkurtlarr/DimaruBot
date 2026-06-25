@@ -14,6 +14,8 @@ import { timeoutCommand } from './moderation/timeout';
 import { historyCommand } from './moderation/history';
 import { ticketCreateCommand } from './tickets/create';
 import { ticketCloseCommand } from './tickets/close';
+import { rankCommand } from './levels/rank';
+import { leaderboardCommand } from './levels/leaderboard';
 
 export const commandRegistry = new CommandRegistry();
 
@@ -31,6 +33,8 @@ commandRegistry.register(timeoutCommand);
 commandRegistry.register(historyCommand);
 commandRegistry.register(ticketCreateCommand);
 commandRegistry.register(ticketCloseCommand);
+commandRegistry.register(rankCommand);
+commandRegistry.register(leaderboardCommand);
 
 export const commandHandler = new CommandHandler(commandRegistry);
 

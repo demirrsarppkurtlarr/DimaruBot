@@ -8,6 +8,7 @@ const nav = [
   { href: '/dashboard/guilds', label: 'Guilds' },
   { href: '/dashboard/economy', label: 'Economy' },
   { href: '/dashboard/casino', label: 'Casino' },
+  { href: '/dashboard/levels', label: 'Levels' },
   { href: '/dashboard/admin', label: 'Admin' },
 ];
 

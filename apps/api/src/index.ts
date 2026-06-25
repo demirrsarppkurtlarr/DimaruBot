@@ -11,6 +11,7 @@ import { economyRoutes } from './routes/economy';
 import { adminRoutes } from './routes/admin';
 import { authRoutes } from './routes/auth';
 import { moderationRoutes } from './routes/moderation';
+import { levelsRoutes } from './routes/levels';
 
 const app = Fastify({
   logger: false,
@@ -27,6 +28,7 @@ async function main() {
   await app.register(economyRoutes, { prefix: '/api/v1/economy' });
   await app.register(adminRoutes, { prefix: '/api/v1/admin' });
   await app.register(moderationRoutes, { prefix: '/api/v1/moderation' });
+  await app.register(levelsRoutes, { prefix: '/api/v1/levels' });
 
   app.setErrorHandler((err, req, reply) => {
     logger.error({ err, reqId: req.id }, 'API error');
