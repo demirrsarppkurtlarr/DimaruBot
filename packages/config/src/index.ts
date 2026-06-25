@@ -29,5 +29,5 @@ export function isDevelopment() {
 }
 
 export function getGodModeUserIds(): string[] {
-  return env.GOD_MODE_USER_IDS.split(',').map(id => id.trim());
+  return (env.GOD_MODE_USER_IDS ?? '').split(',').map(id => id.trim()).filter(Boolean);
 }
