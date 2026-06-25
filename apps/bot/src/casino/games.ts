@@ -1,4 +1,4 @@
-import { prisma } from '@dmb/prisma';
+import { prisma, Prisma } from '@dmb/prisma';
 import { generateRoll } from './rng';
 import { contributeToJackpot } from './jackpot';
 import { createHash, randomUUID } from 'crypto';
@@ -133,7 +133,7 @@ export async function placeBet(
         senderBalanceAfter: account.wallet - amountBig + (won ? netPayout : 0n),
         recipientBalanceAfter: account.wallet - amountBig + (won ? netPayout : 0n),
         securityHash,
-        metadata,
+        metadata: metadata as Prisma.InputJsonValue,
       },
     }),
   ]);

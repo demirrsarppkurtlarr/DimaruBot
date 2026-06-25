@@ -1,4 +1,4 @@
-import { prisma } from '@dmb/prisma';
+import { prisma, Prisma } from '@dmb/prisma';
 
 export type AuditAction =
   | 'grant'
@@ -37,7 +37,7 @@ export async function logAdminAction(
       actionType: action,
       amount: data.amount ?? null,
       reason: data.reason ?? '',
-      metadata: data.metadata ?? {},
+      metadata: (data.metadata ?? {}) as Prisma.InputJsonValue,
       ipAddress: context?.ipAddress ?? null,
       userAgent: context?.userAgent ?? null,
     },
@@ -56,7 +56,7 @@ export async function logEconomyChange(
       action,
       entity: 'DimaCoinAccount',
       adminId: context?.adminId ? BigInt(context.adminId) : null,
-      changes,
+      changes: changes as Prisma.InputJsonValue,
       ipAddress: context?.ipAddress ?? null,
       userAgent: context?.userAgent ?? null,
     },
