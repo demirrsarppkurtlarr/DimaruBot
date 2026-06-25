@@ -39,7 +39,7 @@ services:
     name: dimaru-dashboard
     env: node
     plan: free
-    buildCommand: corepack enable && NODE_ENV=development npm install && npm run build
+    buildCommand: corepack enable && NEXT_IGNORE_INCORRECT_LOCKFILE=true NODE_ENV=development npm install && npm run build
     startCommand: npm run start --workspace=@dmb/dashboard
     envVars:
       - key: NODE_ENV
