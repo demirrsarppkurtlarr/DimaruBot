@@ -17,7 +17,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: dimaru-redis
           property: connectionString
       - key: DASHBOARD_URL
@@ -62,7 +62,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: dimaru-redis
           property: connectionString
       - key: DISCORD_TOKEN
@@ -72,11 +72,16 @@ services:
       - key: GOD_MODE_USER_IDS
         sync: false
 
+  - type: keyvalue
+    name: dimaru-redis
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+
 databases:
   - name: dimaru-postgres
     databaseName: dimarubot
     user: dimaru
-    plan: starter
-  - name: dimaru-redis
-    type: redis
     plan: starter
