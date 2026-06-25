@@ -7,6 +7,13 @@ import { dailyCommand } from './economy/daily';
 import { slotCommand } from './casino/slot';
 import { rouletteCommand } from './casino/roulette';
 import { blackjackCommand } from './casino/blackjack';
+import { warnCommand } from './moderation/warn';
+import { kickCommand } from './moderation/kick';
+import { banCommand } from './moderation/ban';
+import { timeoutCommand } from './moderation/timeout';
+import { historyCommand } from './moderation/history';
+import { ticketCreateCommand } from './tickets/create';
+import { ticketCloseCommand } from './tickets/close';
 
 export const commandRegistry = new CommandRegistry();
 
@@ -17,6 +24,13 @@ commandRegistry.register(dailyCommand);
 commandRegistry.register(slotCommand);
 commandRegistry.register(rouletteCommand);
 commandRegistry.register(blackjackCommand);
+commandRegistry.register(warnCommand);
+commandRegistry.register(kickCommand);
+commandRegistry.register(banCommand);
+commandRegistry.register(timeoutCommand);
+commandRegistry.register(historyCommand);
+commandRegistry.register(ticketCreateCommand);
+commandRegistry.register(ticketCloseCommand);
 
 export const commandHandler = new CommandHandler(commandRegistry);
 
