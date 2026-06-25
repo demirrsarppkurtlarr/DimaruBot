@@ -77,7 +77,6 @@ databases:
     databaseName: dimarubot
     user: dimaru
     plan: starter
-
-redis:
   - name: dimaru-redis
+    type: redis
     plan: starter
